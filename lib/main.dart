@@ -394,8 +394,9 @@ class LessonReadingScreen extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CupertinoActivityIndicator());
             }
-            if (snapshot.hasError)
+            if (snapshot.hasError) {
               return const Center(child: Text("Lỗi tải nội dung"));
+            }
 
             final data = snapshot.data!;
             return SingleChildScrollView(
