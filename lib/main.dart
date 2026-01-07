@@ -263,7 +263,7 @@ class CourseDetailScreen extends StatelessWidget {
               WidgetsBinding.instance.addPostFrameCallback(
                 (_) => _showUpdateDialog(context, title, shouldPopScreen: true),
               );
-              return const SizedBox.shrink();
+              return const Center(child: Text("Đang tải dữ liệu..."));
             }
 
             final lessons = snapshot.data ?? [];
@@ -278,16 +278,32 @@ class CourseDetailScreen extends StatelessWidget {
                   imageUrl: lesson.image,
                   onTap: () {
                     if (lesson.path != null) {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (_) => CourseDetailScreen(
-                            title: lesson.title,
-                            path: lesson.path!,
-                            breadcrumb: "$breadcrumb -> ${lesson.title}",
+                      // Nếu path trỏ đến một file index.json -> Mở tiếp danh sách Card
+                      if (lesson.path!.endsWith('index.json')) {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (_) => CourseDetailScreen(
+                              title: lesson.title,
+                              path: lesson.path!,
+                              breadcrumb: "$breadcrumb -> ${lesson.title}",
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
+                      // Nếu path trỏ đến file bài học cụ thể (vd: variables.json) -> Mở trang đọc nội dung
+                      else {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (_) => LessonReadingScreen(
+                              // Bạn cần tạo thêm màn hình này
+                              title: lesson.title,
+                              path: lesson.path!,
+                            ),
+                          ),
+                        );
+                      }
                     } else {
                       _showUpdateDialog(context, lesson.title);
                     }
@@ -350,5 +366,61 @@ class BreadcrumbTitle extends StatelessWidget {
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: double.infinity);
     return textPainter.width > maxWidth;
+  }
+}
+
+class LessonReadingScreen extends StatelessWidget {
+  final String title;
+  final String path;
+
+  const LessonReadingScreen({
+    super.key,
+    required this.title,
+    required this.path,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(title),
+        previousPageTitle: 'Back',
+      ),
+      child: SafeArea(
+        child: FutureBuilder<Map<String, dynamic>>(
+          // Ở đây load file json chứa nội dung bài học
+          future: _loadLessonContent(path),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CupertinoActivityIndicator());
+            }
+            if (snapshot.hasError)
+              return const Center(child: Text("Lỗi tải nội dung"));
+
+            final data = snapshot.data!;
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    data['content'] ?? '',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  // Bạn có thể thêm widget hiển thị code ở đây
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> _loadLessonContent(String path) async {
+    final url =
+        'https://raw.githubusercontent.com/johndev98/data_code/refs/heads/main/assets/$path';
+    final response = await http.get(Uri.parse(url));
+    return jsonDecode(response.body);
   }
 }
