@@ -388,7 +388,6 @@ class LessonReadingScreen extends StatelessWidget {
       ),
       child: SafeArea(
         child: FutureBuilder<Map<String, dynamic>>(
-          // Ở đây load file json chứa nội dung bài học
           future: _loadLessonContent(path),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -399,18 +398,15 @@ class LessonReadingScreen extends StatelessWidget {
             }
 
             final data = snapshot.data!;
-            return SingleChildScrollView(
+            final List blocks = data['blocks'] ?? [];
+
+            return ListView.builder(
               padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    data['content'] ?? '',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  // Bạn có thể thêm widget hiển thị code ở đây
-                ],
-              ),
+              itemCount: blocks.length,
+              itemBuilder: (context, index) {
+                final block = blocks[index];
+                return _buildBlock(context, block);
+              },
             );
           },
         ),
@@ -418,10 +414,218 @@ class LessonReadingScreen extends StatelessWidget {
     );
   }
 
+  // Hàm điều hướng render các loại block
+  Widget _buildBlock(BuildContext context, Map<String, dynamic> block) {
+    final type = block['type'];
+    final value = block['value'] ?? '';
+
+    switch (type) {
+      case 'heading':
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: CupertinoColors.activeBlue,
+            ),
+          ),
+        );
+      case 'text':
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(value, style: const TextStyle(fontSize: 17, height: 1.5)),
+        );
+      case 'code':
+        return _buildCodeBlock(value);
+      case 'image':
+        return SafeImageBlock(url: value, caption: block['caption']);
+      case 'quiz':
+        return QuizBlock(data: block);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  // Khối hiển thị Code
+  Widget _buildCodeBlock(String code) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGrey6,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: CupertinoColors.systemGrey4),
+      ),
+      child: Text(
+        code,
+        style: const TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 14,
+          color: CupertinoColors.activeOrange,
+        ),
+      ),
+    );
+  }
+
+  // Khối hiển thị Hình ảnh
+
   Future<Map<String, dynamic>> _loadLessonContent(String path) async {
     final url =
         'https://raw.githubusercontent.com/johndev98/data_code/refs/heads/main/assets/$path';
-    final response = await http.get(Uri.parse(url));
+    final response = await http
+        .get(Uri.parse(url))
+        .timeout(const Duration(seconds: 10));
     return jsonDecode(response.body);
+  }
+}
+
+// Khối câu hỏi trắc nghiệm (Quiz)
+class QuizBlock extends StatefulWidget {
+  final Map<String, dynamic> data;
+  const QuizBlock({super.key, required this.data});
+
+  @override
+  State<QuizBlock> createState() => _QuizBlockState();
+}
+
+class _QuizBlockState extends State<QuizBlock> {
+  int? selectedIndex;
+  bool isCorrect = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final List options = widget.data['options'] ?? [];
+    final int correctAnswer = widget.data['answer'] ?? 0;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGroupedBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.data['question'],
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(options.length, (index) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedIndex = index;
+                  isCorrect = (index == correctAnswer);
+                });
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: selectedIndex == index
+                      ? (isCorrect
+                            ? CupertinoColors.activeGreen.withValues(alpha: 0.2)
+                            : CupertinoColors.systemRed.withValues(alpha: 0.2))
+                      : CupertinoColors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: selectedIndex == index
+                        ? (isCorrect
+                              ? CupertinoColors.activeGreen
+                              : CupertinoColors.systemRed)
+                        : CupertinoColors.systemGrey4,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      "${String.fromCharCode(65 + index)}. ",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Expanded(child: Text(options[index])),
+                    if (selectedIndex == index)
+                      Icon(
+                        isCorrect
+                            ? CupertinoIcons.check_mark_circled
+                            : CupertinoIcons.xmark_circle,
+                        color: isCorrect
+                            ? CupertinoColors.activeGreen
+                            : CupertinoColors.systemRed,
+                      ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class SafeImageBlock extends StatefulWidget {
+  final String url;
+  final String? caption;
+
+  const SafeImageBlock({super.key, required this.url, this.caption});
+
+  @override
+  State<SafeImageBlock> createState() => _SafeImageBlockState();
+}
+
+class _SafeImageBlockState extends State<SafeImageBlock> {
+  bool _hasError = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Nếu xảy ra lỗi, trả về một widget rỗng không chiếm diện tích
+    if (_hasError || widget.url.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              widget.url,
+              fit: BoxFit.cover,
+              // Xử lý khi load ảnh lỗi
+              errorBuilder: (context, error, stackTrace) {
+                // Sử dụng addPostFrameCallback để tránh lỗi setState trong khi build
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _hasError = true;
+                    });
+                  }
+                });
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+          // Chỉ hiện caption nếu ảnh load thành công và có caption
+          if (widget.caption != null && !_hasError)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                widget.caption!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: CupertinoColors.systemGrey,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
