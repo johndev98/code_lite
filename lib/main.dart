@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_highlighter/flutter_highlighter.dart';
+import 'package:flutter_highlighter/themes/atom-one-dark.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -110,12 +113,14 @@ class CourseCard extends StatelessWidget {
             decoration: const BoxDecoration(color: CupertinoColors.systemGrey6),
             child: Stack(
               children: [
-                Image.network(
-                  imageUrl,
+                CachedNetworkImage(
+                  imageUrl: imageUrl,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
-                  errorBuilder: (_, _, _) => Container(
+                  placeholder: (context, url) =>
+                      Container(color: CupertinoColors.systemGrey6),
+                  errorWidget: (context, url, error) => Container(
                     color: CupertinoColors.systemGrey,
                     child: const Icon(
                       CupertinoIcons.photo,
@@ -438,7 +443,8 @@ class LessonReadingScreen extends StatelessWidget {
           child: Text(value, style: const TextStyle(fontSize: 17, height: 1.5)),
         );
       case 'code':
-        return _buildCodeBlock(value);
+        final language = block['language'] ?? 'dart';
+        return _buildCodeBlock(value, language);
       case 'image':
         return SafeImageBlock(url: value, caption: block['caption']);
       case 'quiz':
@@ -449,21 +455,32 @@ class LessonReadingScreen extends StatelessWidget {
   }
 
   // Khối hiển thị Code
-  Widget _buildCodeBlock(String code) {
+  Widget _buildCodeBlock(String code, String language) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
-      padding: const EdgeInsets.all(12),
+      width: double.infinity, // Chiếm hết chiều ngang
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: CupertinoColors.systemGrey4),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Text(
-        code,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontSize: 14,
-          color: CupertinoColors.activeOrange,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: HighlightView(
+          code,
+          language: language,
+          theme: atomOneDarkTheme, // Theme tối kiểu VS Code
+          padding: const EdgeInsets.all(12),
+          textStyle: const TextStyle(
+            fontFamily: 'MyCodeFont',
+            fontSize: 14,
+            height: 1.5,
+          ),
         ),
       ),
     );
@@ -582,10 +599,7 @@ class _SafeImageBlockState extends State<SafeImageBlock> {
 
   @override
   Widget build(BuildContext context) {
-    // Nếu xảy ra lỗi, trả về một widget rỗng không chiếm diện tích
-    if (_hasError || widget.url.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (_hasError || widget.url.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -593,24 +607,24 @@ class _SafeImageBlockState extends State<SafeImageBlock> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              widget.url,
+            child: CachedNetworkImage(
+              imageUrl: widget.url,
               fit: BoxFit.cover,
-              // Xử lý khi load ảnh lỗi
-              errorBuilder: (context, error, stackTrace) {
-                // Sử dụng addPostFrameCallback để tránh lỗi setState trong khi build
+              // Hiệu ứng mờ khi đang tải
+              placeholder: (context, url) => Container(
+                height: 200,
+                color: CupertinoColors.systemGrey6,
+                child: const Center(child: CupertinoActivityIndicator()),
+              ),
+              // Xử lý lỗi
+              errorWidget: (context, url, error) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    setState(() {
-                      _hasError = true;
-                    });
-                  }
+                  if (mounted) setState(() => _hasError = true);
                 });
                 return const SizedBox.shrink();
               },
             ),
           ),
-          // Chỉ hiện caption nếu ảnh load thành công và có caption
           if (widget.caption != null && !_hasError)
             Padding(
               padding: const EdgeInsets.only(top: 8),
