@@ -22,6 +22,49 @@ class App extends StatelessWidget {
   }
 }
 
+void _showExplanation(BuildContext context, String title, String content) {
+  showCupertinoModalPopup(
+    context: context,
+    builder: (context) => Container(
+      height: MediaQuery.of(context).size.height * 0.4,
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: CupertinoColors.systemBackground,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemGrey4,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 15),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Text(
+                content,
+                style: const TextStyle(fontSize: 17, height: 1.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 // --- Các hàm hỗ trợ dùng chung ---
 void _showUpdateDialog(
   BuildContext context,
@@ -444,7 +487,9 @@ class LessonReadingScreen extends StatelessWidget {
         );
       case 'code':
         final language = block['language'] ?? 'dart';
-        return _buildCodeBlock(value, language);
+        final annotations =
+            block['annotations'] as List?; // Lấy danh sách giải thích
+        return _buildCodeBlock(context, value, language, annotations);
       case 'image':
         return SafeImageBlock(url: value, caption: block['caption']);
       case 'quiz':
@@ -455,34 +500,85 @@ class LessonReadingScreen extends StatelessWidget {
   }
 
   // Khối hiển thị Code
-  Widget _buildCodeBlock(String code, String language) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      width: double.infinity, // Chiếm hết chiều ngang
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: CupertinoColors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+  Widget _buildCodeBlock(
+    BuildContext context,
+    String code,
+    String language,
+    List? annotations,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 12),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: const Color(0xff282c34), // Màu nền của Atom One Dark
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: HighlightView(
-          code,
-          language: language,
-          theme: atomOneDarkTheme, // Theme tối kiểu VS Code
-          padding: const EdgeInsets.all(12),
-          textStyle: const TextStyle(
-            fontFamily: 'MyCodeFont',
-            fontSize: 14,
-            height: 1.5,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: HighlightView(
+              code,
+              language: language,
+              theme: atomOneDarkTheme,
+              padding: const EdgeInsets.all(12),
+              textStyle: const TextStyle(
+                fontFamily: 'MyCodeFont',
+                fontSize: 16,
+                height: 1.5,
+              ),
+            ),
           ),
         ),
-      ),
+        // Nếu có annotations, hiển thị danh sách các từ khóa bên dưới
+        if (annotations != null && annotations.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: annotations.map((item) {
+                return GestureDetector(
+                  onTap: () =>
+                      _showExplanation(context, item['title'], item['content']),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: CupertinoColors.activeBlue.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          CupertinoIcons.info_circle,
+                          size: 14,
+                          color: CupertinoColors.activeBlue,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          item['keyword'],
+                          style: const TextStyle(
+                            color: CupertinoColors.activeBlue,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
     );
   }
 
