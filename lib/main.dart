@@ -302,6 +302,13 @@ class LessonReadingScreen extends StatelessWidget {
       try {
         // Xây dựng URL từ điển chuẩn
         String finalUrl;
+        /*
+        Khi đang phát triển bài học: Nên dùng thêm ?t=... để thấy thay đổi ngay lập tức.
+    Khi đã phát hành app cho người dùng: Bạn có thể bỏ đoạn ?t=... đi để tận dụng Cache. 
+    Việc dùng Cache giúp App load nhanh hơn và tiết kiệm pin cho người dùng vì CDN sẽ xử lý dữ liệu nhanh hơn máy chủ gốc.
+    XÓA ?t=$timestamp khi phát hành:
+    Giữ ?t=$timestamp khi phát triển:
+    */
         if (customPath != null) {
           finalUrl = '${AppConfig.baseUrl}/$customPath.json?t=$timestamp';
         } else {
