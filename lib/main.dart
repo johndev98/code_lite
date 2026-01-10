@@ -382,22 +382,20 @@ class LessonReadingScreen extends StatelessWidget {
 
     switch (type) {
       case 'heading':
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: CupertinoColors.activeBlue,
-            ),
-          ),
-        );
+        return _buildHeading(value);
       case 'text':
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Text(value, style: const TextStyle(fontSize: 17, height: 1.5)),
+        return _buildText(value);
+      case 'callout': // MỚI: Ghi chú, Cảnh báo, Mẹo
+        return _buildCallout(value, block['style'] ?? 'info');
+      case 'divider': // MỚI: Đường kẻ phân cách
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: CupertinoDivider(),
         );
+      case 'list': // MỚI: Danh sách gạch đầu dòng
+        return _buildList(block['items'] ?? []);
+      case 'video': // MỚI: Video (MP4) hoặc GIF
+        return _buildVideoBlock(value, block['caption']);
       case 'code':
         return _buildCodeSection(
           context,
@@ -413,6 +411,141 @@ class LessonReadingScreen extends StatelessWidget {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildCallout(String text, String style) {
+    Color color;
+    IconData icon;
+
+    if (style == 'warning') {
+      color = CupertinoColors.systemOrange;
+      icon = CupertinoIcons.exclamationmark_triangle_fill;
+    } else if (style == 'tip') {
+      color = CupertinoColors.systemGreen;
+      icon = CupertinoIcons.lightbulb_fill;
+    } else {
+      color = CupertinoColors.activeBlue;
+      icon = CupertinoIcons.info_circle_fill;
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border(left: BorderSide(color: color, width: 4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 16, height: 1.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoBlock(String url, String? caption) {
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: CachedNetworkImage(
+            imageUrl: url,
+            placeholder: (_, __) => Container(
+              height: 200,
+              color: CupertinoColors.systemGrey6,
+              child: const Center(child: CupertinoActivityIndicator()),
+            ),
+            errorWidget: (_, _, _) => const SizedBox.shrink(),
+          ),
+        ),
+        if (caption != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            child: Text(
+              caption,
+              style: const TextStyle(
+                fontSize: 14,
+                color: CupertinoColors.systemGrey,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildList(List items) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        children: items
+            .map(
+              (item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      " • ",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.activeBlue,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        item.toString(),
+                        style: const TextStyle(fontSize: 17, height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  // Khối Tiêu đề
+  Widget _buildHeading(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, bottom: 12),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: CupertinoColors.label,
+          letterSpacing: -0.5,
+        ),
+      ),
+    );
+  }
+
+  // Khối Văn bản (Đoạn văn)
+  Widget _buildText(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 17,
+          height: 1.5, // Tăng khoảng cách dòng để dễ đọc hơn
+          color: CupertinoColors.label,
+        ),
+      ),
+    );
   }
 
   Widget _buildCodeSection(
@@ -752,6 +885,18 @@ class _QuizBlockState extends State<QuizBlock> {
           }),
         ],
       ),
+    );
+  }
+}
+
+class CupertinoDivider extends StatelessWidget {
+  const CupertinoDivider({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 1,
+      width: double.infinity,
+      color: CupertinoColors.systemGrey5,
     );
   }
 }
