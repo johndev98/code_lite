@@ -4,11 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_highlighter/flutter_highlighter.dart';
 import 'package:flutter_highlighter/themes/atom-one-dark.dart';
 import 'package:http/http.dart' as http;
-
 void main() {
   runApp(const App());
 }
-
 class App extends StatelessWidget {
   const App({super.key});
 
@@ -27,7 +25,6 @@ class AppConfig {
   static const String baseUrl =
       'https://raw.githubusercontent.com/johndev98/data_code/refs/heads/main/assets';
 }
-
 // --- UTILS ---
 void _showExplanation(BuildContext context, String title, String content) {
   showCupertinoModalPopup(
@@ -372,11 +369,7 @@ class LessonReadingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBlock(
-    BuildContext context,
-    Map<String, dynamic> block,
-    Map<String, dynamic>? dict,
-  ) {
+  Widget _buildBlock(BuildContext context, Map<String, dynamic> block, Map<String, dynamic>? dict) {
     final type = block['type'];
     final value = block['value'] ?? '';
 
@@ -385,34 +378,88 @@ class LessonReadingScreen extends StatelessWidget {
         return _buildHeading(value);
       case 'text':
         return _buildText(value);
-      case 'callout': // MỚI: Ghi chú, Cảnh báo, Mẹo
-        return _buildCallout(value, block['style'] ?? 'info');
-      case 'divider': // MỚI: Đường kẻ phân cách
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: CupertinoDivider(),
+      case 'analogy': // MỚI: Khối liên tưởng thực tế
+        return _buildAnalogy(block['concept'] ?? 'Khái niệm', value);
+      case 'comparison': // MỚI: Khối so sánh đúng/sai
+        return _buildComparison(
+          block['wrong'] ?? '', 
+          block['right'] ?? '', 
+          block['reason'] ?? ''
         );
-      case 'list': // MỚI: Danh sách gạch đầu dòng
+      case 'callout':
+        return _buildCallout(value, block['style'] ?? 'info');
+      case 'list':
         return _buildList(block['items'] ?? []);
-      case 'video': // MỚI: Video (MP4) hoặc GIF
+      case 'video':
         return _buildVideoBlock(value, block['caption']);
       case 'code':
-        return _buildCodeSection(
-          context,
-          value,
-          block['language'] ?? languageId,
-          block['keywords'],
-          dict,
-        );
+        return _buildCodeSection(context, value, block['language'] ?? languageId, block['keywords'], dict);
       case 'image':
         return SafeImageBlock(url: value, caption: block['caption']);
       case 'quiz':
         return QuizBlock(data: block);
+      case 'divider':
+        return const Padding(padding: EdgeInsets.symmetric(vertical: 20), child: CupertinoDivider());
       default:
         return const SizedBox.shrink();
     }
   }
+  Widget _buildComparison(String wrong, String right, String reason) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          _codeLabel("SAI ❌", wrong, CupertinoColors.systemRed),
+          const SizedBox(height: 8),
+          _codeLabel("ĐÚNG ✅", right, CupertinoColors.systemGreen),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text("💡 Giải thích: $reason", style: const TextStyle(fontSize: 14, color: CupertinoColors.secondaryLabel)),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _codeLabel(String label, String code, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withOpacity(0.3))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(code, style: const TextStyle(fontFamily: 'MyCodeFont', fontSize: 14)),
+        ],
+      ),
+    );
+  }
+  Widget _buildAnalogy(String concept, String realWorld) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemIndigo.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CupertinoColors.systemIndigo.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(CupertinoIcons.lightbulb_fill, color: CupertinoColors.systemYellow),
+              const SizedBox(width: 8),
+              Text("Liên tưởng thực tế: $concept", style: const TextStyle(fontWeight: FontWeight.bold, color: CupertinoColors.systemIndigo)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(realWorld, style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic, height: 1.4)),
+        ],
+      ),
+    );
+  }
   Widget _buildCallout(String text, String style) {
     Color color;
     IconData icon;
