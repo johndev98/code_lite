@@ -1,13 +1,13 @@
 import 'package:flutter/cupertino.dart';
-import '../models/content_item.dart';
-import '../utils/content_loader.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/content_providers.dart';
 import '../utils/error_handler.dart';
 import '../utils/dialogs.dart';
 import '../widgets/course_card.dart';
 import '../widgets/breadcrumb_title.dart';
 import 'lesson_reading_screen.dart';
 
-class CourseDetailScreen extends StatelessWidget {
+class CourseDetailScreen extends ConsumerWidget {
   final String title;
   final String path;
   final String breadcrumb;
@@ -22,24 +22,17 @@ class CourseDetailScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lessonsAsync = ref.watch(collectionProvider(path));
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: BreadcrumbTitle(breadcrumb: breadcrumb),
         previousPageTitle: 'Back',
       ),
       child: SafeArea(
-        child: FutureBuilder<List<ContentItem>>(
-          future: ContentLoader.loadCollection(path),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CupertinoActivityIndicator());
-            }
-            if (snapshot.hasError) {
-              ErrorHandler.handleNetworkErrorWithPop(context, title);
-              return const Center(child: Text("Đang tải..."));
-            }
-            final lessons = snapshot.data ?? [];
+        child: lessonsAsync.when(
+          data: (lessons) {
             if (lessons.isEmpty) {
               return const Center(child: Text("Không có dữ liệu"));
             }
@@ -85,6 +78,11 @@ class CourseDetailScreen extends StatelessWidget {
                 );
               },
             );
+          },
+          loading: () => const Center(child: CupertinoActivityIndicator()),
+          error: (error, stack) {
+            ErrorHandler.handleNetworkErrorWithPop(context, title);
+            return const Center(child: Text("Đang tải..."));
           },
         ),
       ),

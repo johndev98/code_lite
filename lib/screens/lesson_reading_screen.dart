@@ -1,16 +1,15 @@
-import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_highlighter/flutter_highlighter.dart';
 import 'package:flutter_highlighter/themes/atom-one-dark.dart';
-import 'package:http/http.dart' as http;
-import '../constants/app_config.dart';
+import '../providers/lesson_providers.dart';
 import '../utils/dialogs.dart';
 import '../widgets/safe_image_block.dart';
 import '../widgets/quiz_block.dart';
 import '../widgets/cupertino_divider.dart';
 
-class LessonReadingScreen extends StatelessWidget {
+class LessonReadingScreen extends ConsumerWidget {
   final String title;
   final String path;
   final String languageId;
@@ -22,101 +21,30 @@ class LessonReadingScreen extends StatelessWidget {
     required this.languageId,
   });
 
-  static final Map<String, Map<String, dynamic>> _dictionariesCache = {};
-
-  Future<Map<String, dynamic>> _loadAllData() async {
-    // Thêm timestamp để ép GitHub trả về file mới nhất ngay lập tức
-    final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-
-    // 1. Tải bài học
-    final lessonUrl = '${AppConfig.baseUrl}/$path?t=$timestamp';
-    debugPrint('--- Đang tải bài học: $lessonUrl');
-
-    final lessonResponse = await http
-        .get(Uri.parse(lessonUrl))
-        .timeout(AppConfig.networkTimeout);
-    
-    if (lessonResponse.statusCode != 200) {
-      throw Exception("Lỗi tải bài học: ${lessonResponse.statusCode}");
-    }
-
-    final lessonData = jsonDecode(lessonResponse.body) as Map<String, dynamic>;
-
-    // 2. Xác định từ điển
-    String? customPath = lessonData['dictionary_path'] as String?;
-    // Nếu customPath có .json ở cuối thì xóa đi để code tự thêm đồng nhất
-    if (customPath != null && customPath.endsWith('.json')) {
-      customPath = customPath.replaceAll('.json', '');
-    }
-
-    String dictKey = customPath ?? 'languages/$languageId';
-
-    if (!_dictionariesCache.containsKey(dictKey)) {
-      try {
-        // Xây dựng URL từ điển chuẩn
-        final String finalUrl;
-        /*
-        Khi đang phát triển bài học: Nên dùng thêm ?t=... để thấy thay đổi ngay lập tức.
-        Khi đã phát hành app cho người dùng: Bạn có thể bỏ đoạn ?t=... đi để tận dụng Cache. 
-        Việc dùng Cache giúp App load nhanh hơn và tiết kiệm pin cho người dùng vì CDN sẽ xử lý dữ liệu nhanh hơn máy chủ gốc.
-        XÓA ?t=$timestamp khi phát hành:
-        Giữ ?t=$timestamp khi phát triển:
-        */
-        if (customPath != null) {
-          finalUrl = '${AppConfig.baseUrl}/$customPath.json?t=$timestamp';
-        } else {
-          finalUrl =
-              '${AppConfig.baseUrl}/content/dictionary/languages/$languageId.json?t=$timestamp';
-        }
-
-        debugPrint('--- Đang tải từ điển: $finalUrl');
-
-        final dictResponse = await http
-            .get(Uri.parse(finalUrl))
-            .timeout(AppConfig.networkTimeout);
-        
-        if (dictResponse.statusCode == 200) {
-          _dictionariesCache[dictKey] = jsonDecode(dictResponse.body) as Map<String, dynamic>;
-          debugPrint('--- Đã tải từ điển thành công cho: $dictKey');
-        } else {
-          debugPrint('--- Không tìm thấy file từ điển (404) tại: $finalUrl');
-        }
-      } catch (e) {
-        debugPrint('--- Lỗi kết nối khi tải từ điển: $e');
-      }
-    }
-
-    return {
-      'lesson': lessonData,
-      'active_dict_path': dictKey,
-    };
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lessonParams = LessonParams(path: path, languageId: languageId);
+    final lessonDataAsync = ref.watch(lessonDataProvider(lessonParams));
+
+    // Tối ưu: chỉ watch dictionary cache khi cần, tránh rebuild không cần thiết
+    final activeDictPath =
+        lessonDataAsync.value?['active_dict_path'] as String?;
+    final dict = activeDictPath != null
+        ? ref.watch(
+            dictionaryCacheProvider.select((cache) => cache[activeDictPath]),
+          )
+        : null;
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(title),
         previousPageTitle: 'Back',
       ),
       child: SafeArea(
-        child: FutureBuilder<Map<String, dynamic>>(
-          future: _loadAllData(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CupertinoActivityIndicator());
-            }
-            if (snapshot.hasError) {
-              return const Center(child: Text("Lỗi tải nội dung"));
-            }
-
-            final data = snapshot.data!;
+        child: lessonDataAsync.when(
+          data: (data) {
             final lesson = data['lesson'] as Map<String, dynamic>;
-            final String activeDictPath = data['active_dict_path'] as String;
             final List blocks = lesson['blocks'] ?? [];
-            // Lấy từ điển từ cache
-            final Map<String, dynamic>? dict =
-                _dictionariesCache[activeDictPath];
 
             if (blocks.isEmpty) {
               return const Center(child: Text("Không có nội dung"));
@@ -125,17 +53,26 @@ class LessonReadingScreen extends StatelessWidget {
             return ListView.builder(
               padding: const EdgeInsets.all(20),
               itemCount: blocks.length,
-              itemBuilder: (context, index) =>
-                  _buildBlock(context, blocks[index] as Map<String, dynamic>, dict),
+              itemBuilder: (context, index) => _buildBlock(
+                context,
+                blocks[index] as Map<String, dynamic>,
+                dict,
+              ),
             );
           },
+          loading: () => const Center(child: CupertinoActivityIndicator()),
+          error: (error, stack) =>
+              const Center(child: Text("Lỗi tải nội dung")),
         ),
       ),
     );
   }
 
   Widget _buildBlock(
-      BuildContext context, Map<String, dynamic> block, Map<String, dynamic>? dict) {
+    BuildContext context,
+    Map<String, dynamic> block,
+    Map<String, dynamic>? dict,
+  ) {
     final type = block['type'] as String?;
     final value = block['value'] ?? '';
 
@@ -146,7 +83,9 @@ class LessonReadingScreen extends StatelessWidget {
         return _buildText(value.toString());
       case 'analogy':
         return _buildAnalogy(
-            block['concept']?.toString() ?? 'Khái niệm', value.toString());
+          block['concept']?.toString() ?? 'Khái niệm',
+          value.toString(),
+        );
       case 'comparison':
         return _buildComparison(
           block['wrong']?.toString() ?? '',
@@ -154,7 +93,10 @@ class LessonReadingScreen extends StatelessWidget {
           block['reason']?.toString() ?? '',
         );
       case 'callout':
-        return _buildCallout(value.toString(), block['style']?.toString() ?? 'info');
+        return _buildCallout(
+          value.toString(),
+          block['style']?.toString() ?? 'info',
+        );
       case 'list':
         return _buildList(block['items'] as List? ?? []);
       case 'video':
@@ -243,7 +185,9 @@ class LessonReadingScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: CupertinoColors.systemIndigo.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CupertinoColors.systemIndigo.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: CupertinoColors.systemIndigo.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,7 +414,9 @@ class LessonReadingScreen extends StatelessWidget {
                       color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(15),
                       border: Border.all(
-                        color: CupertinoColors.activeBlue.withValues(alpha: 0.3),
+                        color: CupertinoColors.activeBlue.withValues(
+                          alpha: 0.3,
+                        ),
                       ),
                     ),
                     child: Text(

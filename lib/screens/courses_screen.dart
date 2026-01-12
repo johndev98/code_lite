@@ -1,29 +1,22 @@
 import 'package:flutter/cupertino.dart';
-import '../models/content_item.dart';
-import '../utils/content_loader.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/content_providers.dart';
 import '../utils/error_handler.dart';
 import '../widgets/course_card.dart';
 import 'course_detail_screen.dart';
 
-class CoursesScreen extends StatelessWidget {
+class CoursesScreen extends ConsumerWidget {
   const CoursesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final coursesAsync = ref.watch(coursesProvider);
+
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(middle: Text('Courses')),
       child: SafeArea(
-        child: FutureBuilder<List<ContentItem>>(
-          future: ContentLoader.loadCollection('content/courses/index.json'),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CupertinoActivityIndicator());
-            }
-            if (snapshot.hasError) {
-              ErrorHandler.handleNetworkError(context, "Lỗi kết nối");
-              return const Center(child: Text("Lỗi tải dữ liệu"));
-            }
-            final items = snapshot.data ?? [];
+        child: coursesAsync.when(
+          data: (items) {
             if (items.isEmpty) {
               return const Center(child: Text("Không có dữ liệu"));
             }
@@ -54,6 +47,11 @@ class CoursesScreen extends StatelessWidget {
                 );
               },
             );
+          },
+          loading: () => const Center(child: CupertinoActivityIndicator()),
+          error: (error, stack) {
+            ErrorHandler.handleNetworkError(context, "Lỗi kết nối");
+            return const Center(child: Text("Lỗi tải dữ liệu"));
           },
         ),
       ),
