@@ -8,6 +8,11 @@ import '../utils/dialogs.dart';
 import '../widgets/safe_image_block.dart';
 import '../widgets/quiz_block.dart';
 import '../widgets/cupertino_divider.dart';
+import '../widgets/key_concepts_block.dart';
+import '../widgets/step_by_step_block.dart';
+import '../widgets/practice_block.dart';
+import '../widgets/summary_block.dart';
+import '../widgets/checkpoint_block.dart';
 
 class LessonReadingScreen extends ConsumerWidget {
   final String title;
@@ -116,6 +121,27 @@ class LessonReadingScreen extends ConsumerWidget {
         );
       case 'quiz':
         return QuizBlock(data: block);
+      case 'key_concepts':
+        return KeyConceptsBlock(concepts: block['concepts'] as List? ?? []);
+      case 'step_by_step':
+        return StepByStepBlock(
+          steps: block['steps'] as List? ?? [],
+          title: block['title']?.toString(),
+        );
+      case 'practice':
+        return PracticeBlock(data: block);
+      case 'summary':
+        return SummaryBlock(
+          content: value.toString(),
+          keyPoints: block['key_points'] as List?,
+        );
+      case 'checkpoint':
+        return CheckpointBlock(
+          question: block['question']?.toString() ?? '',
+          options: block['options'] as List? ?? [],
+          correctAnswer: block['correct_answer'] as int? ?? 0,
+          explanation: block['explanation']?.toString(),
+        );
       case 'divider':
         return const Padding(
           padding: EdgeInsets.symmetric(vertical: 20),
@@ -128,22 +154,86 @@ class LessonReadingScreen extends ConsumerWidget {
 
   Widget _buildComparison(String wrong, String right, String reason) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
+      margin: const EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            CupertinoColors.systemRed.withValues(alpha: 0.05),
+            CupertinoColors.activeGreen.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CupertinoColors.systemGrey4, width: 1.5),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemOrange.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  CupertinoIcons.arrow_left_right,
+                  color: CupertinoColors.systemOrange,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "So sánh đúng/sai",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.label,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           _codeLabel("SAI ❌", wrong, CupertinoColors.systemRed),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _codeLabel("ĐÚNG ✅", right, CupertinoColors.systemGreen),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              "💡 Giải thích: $reason",
-              style: const TextStyle(
-                fontSize: 14,
-                color: CupertinoColors.secondaryLabel,
+          if (reason.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemYellow.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: CupertinoColors.systemYellow.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    CupertinoIcons.lightbulb_fill,
+                    color: CupertinoColors.systemYellow,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      reason,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: CupertinoColors.label,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -151,27 +241,53 @@ class LessonReadingScreen extends ConsumerWidget {
 
   Widget _codeLabel(String label, String code, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            code,
-            style: const TextStyle(fontFamily: 'MyCodeFont', fontSize: 14),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xff282c34),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              code,
+              style: const TextStyle(
+                fontFamily: 'MyCodeFont',
+                fontSize: 14,
+                color: CupertinoColors.white,
+                height: 1.5,
+              ),
+            ),
           ),
         ],
       ),
@@ -296,28 +412,57 @@ class LessonReadingScreen extends ConsumerWidget {
   }
 
   Widget _buildList(List items) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGroupedBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CupertinoColors.systemGrey5),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: items
+            .asMap()
+            .entries
             .map(
-              (item) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.key < items.length - 1 ? 12 : 0,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      " • ",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: CupertinoColors.activeBlue,
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: CupertinoColors.activeBlue.withValues(
+                          alpha: 0.15,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "${entry.key + 1}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: CupertinoColors.activeBlue,
+                          ),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        item.toString(),
-                        style: const TextStyle(fontSize: 17, height: 1.4),
+                        entry.value.toString(),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          height: 1.5,
+                          color: CupertinoColors.label,
+                        ),
                       ),
                     ),
                   ],
@@ -330,29 +475,49 @@ class LessonReadingScreen extends ConsumerWidget {
   }
 
   Widget _buildHeading(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 12),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: CupertinoColors.label,
-          letterSpacing: -0.5,
+    return Container(
+      margin: const EdgeInsets.only(top: 28, bottom: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(color: CupertinoColors.activeBlue, width: 4),
         ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: CupertinoColors.label,
+                letterSpacing: -0.5,
+                height: 1.2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildText(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGroupedBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Text(
         text,
         style: const TextStyle(
           fontSize: 17,
-          height: 1.5,
+          height: 1.6,
           color: CupertinoColors.label,
+          letterSpacing: 0.2,
         ),
       ),
     );
@@ -369,67 +534,147 @@ class LessonReadingScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(top: 12),
+          margin: const EdgeInsets.only(top: 16, bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xff282c34),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                CupertinoIcons.doc_text_fill,
+                color: CupertinoColors.white,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                lang.toUpperCase(),
+                style: const TextStyle(
+                  color: CupertinoColors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             color: const Color(0xff282c34),
+            boxShadow: [
+              BoxShadow(
+                color: CupertinoColors.black.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
             child: HighlightView(
               code,
               language: lang,
               theme: atomOneDarkTheme,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               textStyle: const TextStyle(
                 fontFamily: 'MyCodeFont',
-                fontSize: 16,
-                height: 1.5,
+                fontSize: 15,
+                height: 1.6,
               ),
             ),
           ),
         ),
         if (keywords != null && dict != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 12),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: keywords.map((key) {
-                final info = dict[key];
-                if (info == null) return const SizedBox.shrink();
-                return GestureDetector(
-                  onTap: () => showExplanation(
-                    context,
-                    info['title']?.toString() ?? '',
-                    info['content']?.toString() ?? '',
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: CupertinoColors.systemBlue.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: CupertinoColors.systemBlue.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(
+                      CupertinoIcons.book_fill,
+                      color: CupertinoColors.systemBlue,
+                      size: 16,
                     ),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.activeBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                        color: CupertinoColors.activeBlue.withValues(
-                          alpha: 0.3,
+                    SizedBox(width: 6),
+                    Text(
+                      "Từ khóa quan trọng:",
+                      style: TextStyle(
+                        color: CupertinoColors.systemBlue,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: keywords.map((key) {
+                    final info = dict[key];
+                    if (info == null) return const SizedBox.shrink();
+                    return GestureDetector(
+                      onTap: () => showExplanation(
+                        context,
+                        info['title']?.toString() ?? '',
+                        info['content']?.toString() ?? '',
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: CupertinoColors.activeBlue.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: CupertinoColors.activeBlue.withValues(
+                              alpha: 0.4,
+                            ),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              key.toString(),
+                              style: const TextStyle(
+                                color: CupertinoColors.activeBlue,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              CupertinoIcons.info,
+                              color: CupertinoColors.activeBlue,
+                              size: 14,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    child: Text(
-                      key.toString(),
-                      style: const TextStyle(
-                        color: CupertinoColors.activeBlue,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
           ),
       ],

@@ -1,0 +1,109 @@
+{
+  "dictionary_path": "content/dictionary/languages/dart",
+  "blocks": [
+    {
+      "type": "heading",
+      "value": "Class và Object (Lớp và Đối tượng)"
+    },
+    {
+      "type": "text",
+      "value": "Class là khuôn mẫu để tạo ra các object (đối tượng). Giống như bản thiết kế của một ngôi nhà, class định nghĩa cấu trúc và hành vi, còn object là ngôi nhà thực tế được xây dựng từ bản thiết kế đó."
+    },
+    {
+      "type": "key_concepts",
+      "concepts": [
+        {
+          "title": "Class là gì?",
+          "description": "Class là bản thiết kế định nghĩa thuộc tính (properties) và phương thức (methods) của một object."
+        },
+        {
+          "title": "Object là gì?",
+          "description": "Object là một instance (thể hiện) cụ thể của class. Một class có thể tạo nhiều object."
+        },
+        {
+          "title": "Constructor",
+          "description": "Constructor là phương thức đặc biệt để khởi tạo object. Có thể có nhiều constructor với tham số khác nhau."
+        },
+        {
+          "title": "Properties và Methods",
+          "description": "Properties là biến của class, methods là hàm của class. Có thể là public hoặc private."
+        },
+        {
+          "title": "this keyword",
+          "description": "this trỏ đến instance hiện tại của class, dùng để phân biệt property và parameter cùng tên."
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "value": "// Định nghĩa class\nclass Person {\n  // Properties (thuộc tính)\n  String name;\n  int age;\n  \n  // Constructor\n  Person(this.name, this.age);\n  \n  // Method (phương thức)\n  void introduce() {\n    print('Tôi là $name, $age tuổi');\n  }\n  \n  void haveBirthday() {\n    age++;\n    print('$name vừa có sinh nhật! Bây giờ $age tuổi');\n  }\n}\n\nvoid main() {\n  // Tạo object từ class\n  Person person1 = Person('An', 25);\n  Person person2 = Person('Bình', 30);\n  \n  // Gọi method\n  person1.introduce();\n  person2.introduce();\n  \n  // Thay đổi property\n  person1.age = 26;\n  person1.haveBirthday();\n}",
+      "language": "dart",
+      "keywords": ["class", "this", "void", "Person"]
+    },
+    {
+      "type": "step_by_step",
+      "title": "Tạo và sử dụng Class",
+      "steps": [
+        "Định nghĩa class với từ khóa class",
+        "Khai báo properties (thuộc tính)",
+        "Tạo constructor để khởi tạo object",
+        "Viết methods (phương thức) cho class",
+        "Tạo object bằng constructor: ClassName()",
+        "Gọi methods và truy cập properties"
+      ]
+    },
+    {
+      "type": "code",
+      "value": "class Car {\n  String brand;\n  String model;\n  int year;\n  \n  // Constructor với named parameters\n  Car({\n    required this.brand,\n    required this.model,\n    this.year = 2024\n  });\n  \n  // Named constructor\n  Car.toyota(this.model, this.year) : brand = 'Toyota';\n  \n  // Method trả về giá trị\n  String getInfo() {\n    return '$brand $model ($year)';\n  }\n  \n  // Getter\n  bool get isOld => year < 2020;\n}\n\nvoid main() {\n  Car car1 = Car(brand: 'Honda', model: 'Civic', year: 2023);\n  Car car2 = Car.toyota('Camry', 2022);\n  \n  print(car1.getInfo());\n  print(car2.isOld); // false\n}",
+      "language": "dart",
+      "keywords": ["required", "get", "named constructor"]
+    },
+    {
+      "type": "analogy",
+      "concept": "Class như bản thiết kế",
+      "value": "Class giống như bản thiết kế của một ngôi nhà: nó định nghĩa có bao nhiêu phòng, cửa sổ ở đâu, v.v. Object là ngôi nhà thực tế được xây từ bản thiết kế đó. Từ một bản thiết kế, bạn có thể xây nhiều ngôi nhà khác nhau."
+    },
+    {
+      "type": "comparison",
+      "wrong": "class Person {\n  name; // Thiếu kiểu dữ liệu\n  age;\n}",
+      "right": "class Person {\n  String name; // Có kiểu dữ liệu\n  int age;\n}",
+      "reason": "Luôn khai báo kiểu dữ liệu cho properties. Điều này giúp code rõ ràng, an toàn và IDE gợi ý tốt hơn."
+    },
+    {
+      "type": "practice",
+      "title": "Bài tập: Tạo class Book",
+      "description": "Tạo class Book với các properties: title (String), author (String), pages (int). Thêm method getInfo() trả về thông tin sách dạng 'Tên sách - Tác giả (Số trang trang)'.",
+      "code_template": "void main() {\n  // TODO: Tạo object Book và gọi getInfo()\n}\n\n// TODO: Viết class Book",
+      "solution": "void main() {\n  Book book = Book('Dart Programming', 'John Doe', 300);\n  print(book.getInfo());\n}\n\nclass Book {\n  String title;\n  String author;\n  int pages;\n  \n  Book(this.title, this.author, this.pages);\n  \n  String getInfo() {\n    return '$title - $author ($pages trang)';\n  }\n}",
+      "hint": "Tạo class với 3 properties, constructor nhận 3 tham số, và method getInfo() trả về String."
+    },
+    {
+      "type": "callout",
+      "style": "tip",
+      "value": "💡 Mẹo: Dùng this trong constructor để gán giá trị trực tiếp: Person(this.name, this.age) thay vì Person(String name, int age) { this.name = name; }"
+    },
+    {
+      "type": "checkpoint",
+      "question": "Sự khác biệt giữa class và object là gì?",
+      "options": [
+        "Class là bản thiết kế, object là thể hiện cụ thể",
+        "Class và object giống hệt nhau",
+        "Object là bản thiết kế, class là thể hiện",
+        "Không có sự khác biệt"
+      ],
+      "correct_answer": 0,
+      "explanation": "Class là định nghĩa, bản thiết kế. Object là instance cụ thể được tạo từ class. Một class có thể tạo nhiều object khác nhau."
+    },
+    {
+      "type": "summary",
+      "value": "Bạn đã học về class và object trong Dart - cách định nghĩa class với properties và methods, tạo constructor, và tạo object. Class giúp tổ chức code tốt hơn và tái sử dụng được.",
+      "key_points": [
+        "Class là bản thiết kế, object là thể hiện",
+        "Properties là biến của class",
+        "Methods là hàm của class",
+        "Constructor để khởi tạo object",
+        "this trỏ đến instance hiện tại"
+      ]
+    }
+  ]
+}

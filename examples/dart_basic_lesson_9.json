@@ -1,0 +1,110 @@
+{
+  "dictionary_path": "content/dictionary/languages/dart",
+  "blocks": [
+    {
+      "type": "heading",
+      "value": "Null Safety"
+    },
+    {
+      "type": "text",
+      "value": "Null Safety là tính năng quan trọng trong Dart giúp tránh lỗi null pointer - một trong những lỗi phổ biến nhất trong lập trình. Dart đảm bảo bạn phải xử lý null một cách rõ ràng."
+    },
+    {
+      "type": "key_concepts",
+      "concepts": [
+        {
+          "title": "Non-nullable và Nullable",
+          "description": "Mặc định, biến trong Dart là non-nullable (không thể null). Thêm ? để làm nullable: String? name;"
+        },
+        {
+          "title": "Null-aware operators",
+          "description": "?? (null coalescing), ?. (null-aware access), ??= (null-aware assignment)"
+        },
+        {
+          "title": "! (null assertion)",
+          "description": "Dùng ! để nói với Dart 'tôi chắc chắn giá trị này không null'. Cẩn thận khi dùng!"
+        },
+        {
+          "title": "late keyword",
+          "description": "late cho phép khai báo biến non-nullable nhưng chưa khởi tạo ngay, sẽ gán sau."
+        },
+        {
+          "title": "required và optional",
+          "description": "required cho named parameters bắt buộc, ? cho optional parameters."
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "value": "void main() {\n  // Non-nullable (mặc định)\n  String name = 'Dart'; // Không thể null\n  // name = null; // Lỗi!\n  \n  // Nullable (thêm ?)\n  String? nickname; // Có thể null\n  nickname = null; // OK\n  \n  // Null-aware operators\n  String? text;\n  String result = text ?? 'Giá trị mặc định'; // Nếu null thì dùng 'Giá trị mặc định'\n  \n  // Null-aware access\n  String? maybeName;\n  int? length = maybeName?.length; // Nếu null thì trả về null\n  \n  // Null assertion (cẩn thận!)\n  String? definitelyNotNull;\n  definitelyNotNull = 'Hello';\n  String value = definitelyNotNull!; // Tôi chắc chắn không null\n}",
+      "language": "dart",
+      "keywords": ["String?", "??", "?.", "!", "late"]
+    },
+    {
+      "type": "step_by_step",
+      "title": "Xử lý Null an toàn",
+      "steps": [
+        "Xác định biến có thể null không",
+        "Nếu có thể null: thêm ? vào kiểu dữ liệu",
+        "Kiểm tra null trước khi sử dụng",
+        "Dùng ?? để cung cấp giá trị mặc định",
+        "Dùng ?. để truy cập an toàn",
+        "Chỉ dùng ! khi chắc chắn không null"
+      ]
+    },
+    {
+      "type": "code",
+      "value": "void main() {\n  // late - khởi tạo sau\n  late String lateName;\n  lateName = 'Dart'; // Phải gán trước khi dùng\n  print(lateName);\n  \n  // Null-aware assignment\n  String? value;\n  value ??= 'Default'; // Chỉ gán nếu null\n  print(value); // 'Default'\n  \n  // Kiểm tra null\n  String? maybeString;\n  if (maybeString != null) {\n    print(maybeString.length); // Dart biết không null ở đây\n  }\n  \n  // Với List và Map\n  List<String>? maybeList;\n  int? count = maybeList?.length; // null nếu maybeList là null\n}",
+      "language": "dart",
+      "keywords": ["late", "??=", "null"]
+    },
+    {
+      "type": "analogy",
+      "concept": "Null như hộp rỗng",
+      "value": "Null giống như một hộp rỗng: bạn không thể lấy gì từ hộp rỗng. Null Safety giống như hệ thống kiểm tra: trước khi lấy đồ từ hộp, bạn phải chắc chắn hộp không rỗng, hoặc có kế hoạch xử lý nếu hộp rỗng."
+    },
+    {
+      "type": "comparison",
+      "wrong": "String name;\nprint(name.length); // Lỗi! name có thể null",
+      "right": "String? name;\nif (name != null) {\n  print(name.length);\n} // Kiểm tra null trước",
+      "reason": "Luôn kiểm tra null trước khi sử dụng biến nullable. Hoặc dùng ?. để truy cập an toàn."
+    },
+    {
+      "type": "practice",
+      "title": "Bài tập: Xử lý Null",
+      "description": "Viết hàm getLength() nhận vào String? và trả về độ dài. Nếu null, trả về 0. Dùng null-aware operators.",
+      "code_template": "void main() {\n  String? text1 = 'Hello';\n  String? text2 = null;\n  // TODO: Gọi hàm và in kết quả\n}\n\nint getLength(String? text) {\n  // TODO: Viết logic xử lý null\n}",
+      "solution": "void main() {\n  String? text1 = 'Hello';\n  String? text2 = null;\n  print(getLength(text1)); // 5\n  print(getLength(text2)); // 0\n}\n\nint getLength(String? text) {\n  return text?.length ?? 0;\n}",
+      "hint": "Dùng ?. để lấy length an toàn, và ?? để trả về 0 nếu null."
+    },
+    {
+      "type": "callout",
+      "style": "warning",
+      "value": "⚠️ Cảnh báo: Chỉ dùng ! (null assertion) khi bạn CHẮC CHẮN giá trị không null. Nếu sai, chương trình sẽ crash với lỗi runtime."
+    },
+    {
+      "type": "checkpoint",
+      "question": "Toán tử ?? dùng để làm gì?",
+      "options": [
+        "Cung cấp giá trị mặc định nếu null",
+        "Kiểm tra xem có null không",
+        "Gán giá trị null",
+        "Xóa giá trị null"
+      ],
+      "correct_answer": 0,
+      "explanation": "Toán tử ?? (null coalescing) trả về giá trị bên trái nếu không null, nếu null thì trả về giá trị bên phải. Ví dụ: name ?? 'Unknown'"
+    },
+    {
+      "type": "summary",
+      "value": "Bạn đã học về Null Safety trong Dart - cách khai báo nullable với ?, xử lý null với ?? và ?., và dùng late cho biến khởi tạo sau. Null Safety giúp code an toàn hơn và tránh lỗi null pointer.",
+      "key_points": [
+        "Mặc định biến là non-nullable",
+        "Thêm ? để làm nullable",
+        "?? để cung cấp giá trị mặc định",
+        "?. để truy cập an toàn",
+        "late cho biến khởi tạo sau",
+        "Chỉ dùng ! khi chắc chắn không null"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "dictionary_path": "content/dictionary/languages/dart",
+  "blocks": [
+    {
+      "type": "heading",
+      "value": "Map (Bản đồ dữ liệu)"
+    },
+    {
+      "type": "text",
+      "value": "Map là cấu trúc dữ liệu lưu trữ dữ liệu dưới dạng cặp key-value (khóa-giá trị). Giống như từ điển: bạn tra từ (key) để tìm nghĩa (value)."
+    },
+    {
+      "type": "key_concepts",
+      "concepts": [
+        {
+          "title": "Cấu trúc Map",
+          "description": "Map lưu trữ dữ liệu dạng {key: value}. Mỗi key là duy nhất và trỏ đến một value."
+        },
+        {
+          "title": "Khai báo Map",
+          "description": "Map<String, int> hoặc var map = {'key': 'value'}. Có thể khai báo rỗng: {}"
+        },
+        {
+          "title": "Truy cập giá trị",
+          "description": "Dùng key trong ngoặc vuông: map['key'] hoặc map.containsKey() để kiểm tra."
+        },
+        {
+          "title": "Thêm/Sửa/Xóa",
+          "description": "Thêm/sửa: map['key'] = value. Xóa: map.remove('key')."
+        },
+        {
+          "title": "Lặp qua Map",
+          "description": "Dùng forEach() hoặc for-in với map.entries để lặp qua cả key và value."
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "value": "void main() {\n  // Khai báo Map\n  Map<String, int> ages = {\n    'An': 25,\n    'Bình': 30,\n    'Chi': 22\n  };\n  \n  // Truy cập giá trị\n  print(ages['An']); // 25\n  \n  // Thêm/Sửa\n  ages['Dũng'] = 28;\n  ages['An'] = 26; // Sửa giá trị\n  \n  // Kiểm tra key\n  if (ages.containsKey('Bình')) {\n    print('Có Bình trong Map');\n  }\n  \n  // Xóa\n  ages.remove('Chi');\n  \n  // Lặp qua Map\n  ages.forEach((name, age) {\n    print('$name: $age tuổi');\n  });\n}",
+      "language": "dart",
+      "keywords": ["Map", "containsKey", "remove", "forEach"]
+    },
+    {
+      "type": "step_by_step",
+      "title": "Làm việc với Map",
+      "steps": [
+        "Khai báo Map với kiểu key và value",
+        "Thêm dữ liệu bằng cú pháp map['key'] = value",
+        "Truy cập bằng key trong ngoặc vuông",
+        "Kiểm tra key tồn tại trước khi truy cập",
+        "Dùng forEach hoặc for-in để lặp qua Map"
+      ]
+    },
+    {
+      "type": "code",
+      "value": "void main() {\n  Map<String, String> capitals = {\n    'Việt Nam': 'Hà Nội',\n    'Thái Lan': 'Bangkok',\n    'Singapore': 'Singapore'\n  };\n  \n  // Các phương thức hữu ích\n  print(capitals.keys); // [Việt Nam, Thái Lan, Singapore]\n  print(capitals.values); // [Hà Nội, Bangkok, Singapore]\n  print(capitals.length); // 3\n  \n  // Kiểm tra rỗng\n  print(capitals.isEmpty); // false\n  \n  // Lấy tất cả keys\n  for (String country in capitals.keys) {\n    print('$country: ${capitals[country]}');\n  }\n}",
+      "language": "dart",
+      "keywords": ["keys", "values", "length", "isEmpty"]
+    },
+    {
+      "type": "analogy",
+      "concept": "Map như từ điển",
+      "value": "Map giống như một cuốn từ điển: mỗi từ (key) có một định nghĩa (value). Bạn tra từ để tìm nghĩa, giống như dùng key để lấy value trong Map."
+    },
+    {
+      "type": "comparison",
+      "wrong": "Map<String, int> map = {};\nint value = map['key']; // Có thể null!",
+      "right": "Map<String, int> map = {};\nint? value = map['key']; // Dùng int? hoặc kiểm tra null",
+      "reason": "Khi truy cập Map bằng key không tồn tại, Dart trả về null. Luôn kiểm tra null hoặc dùng containsKey() trước."
+    },
+    {
+      "type": "practice",
+      "title": "Bài tập: Đếm số lần xuất hiện",
+      "description": "Viết hàm đếm số lần xuất hiện của mỗi từ trong một List. Trả về Map với key là từ và value là số lần xuất hiện.",
+      "code_template": "void main() {\n  List<String> words = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];\n  // TODO: Gọi hàm và in kết quả\n}\n\nMap<String, int> countWords(List<String> words) {\n  // TODO: Viết logic đếm\n}",
+      "solution": "void main() {\n  List<String> words = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'];\n  print(countWords(words));\n  // {apple: 3, banana: 2, orange: 1}\n}\n\nMap<String, int> countWords(List<String> words) {\n  Map<String, int> count = {};\n  for (String word in words) {\n    count[word] = (count[word] ?? 0) + 1;\n  }\n  return count;\n}",
+      "hint": "Dùng Map để lưu số lần xuất hiện. Dùng ?? 0 để xử lý trường hợp key chưa tồn tại."
+    },
+    {
+      "type": "callout",
+      "style": "warning",
+      "value": "⚠️ Lưu ý: Khi truy cập Map bằng key không tồn tại, Dart trả về null. Luôn kiểm tra null hoặc dùng containsKey() trước khi sử dụng giá trị."
+    },
+    {
+      "type": "checkpoint",
+      "question": "Điều gì xảy ra khi truy cập Map với key không tồn tại?",
+      "options": [
+        "Trả về null",
+        "Gây lỗi chương trình",
+        "Trả về 0",
+        "Tự động tạo key mới"
+      ],
+      "correct_answer": 0,
+      "explanation": "Khi truy cập Map với key không tồn tại, Dart trả về null. Đây là lý do nên kiểm tra null hoặc dùng containsKey() trước khi sử dụng."
+    },
+    {
+      "type": "summary",
+      "value": "Bạn đã học về Map trong Dart - cách lưu trữ dữ liệu dạng key-value, thêm/sửa/xóa, và lặp qua Map. Map rất hữu ích khi cần tra cứu nhanh dữ liệu theo key.",
+      "key_points": [
+        "Map lưu trữ dữ liệu dạng key-value",
+        "Mỗi key là duy nhất",
+        "Truy cập bằng map['key']",
+        "Kiểm tra null khi truy cập key không tồn tại",
+        "Dùng forEach hoặc for-in để lặp qua Map"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "dictionary_path": "content/dictionary/languages/dart",
+  "blocks": [
+    {
+      "type": "heading",
+      "value": "Giới thiệu về Dart"
+    },
+    {
+      "type": "text",
+      "value": "Dart là ngôn ngữ lập trình được phát triển bởi Google, được thiết kế để xây dựng ứng dụng mobile, web và desktop. Trong bài học này, bạn sẽ học những kiến thức cơ bản nhất về Dart."
+    },
+    {
+      "type": "key_concepts",
+      "concepts": [
+        {
+          "title": "Dart là gì?",
+          "description": "Dart là ngôn ngữ lập trình hướng đối tượng, type-safe và có thể compile sang JavaScript hoặc native code."
+        },
+        {
+          "title": "Tại sao học Dart?",
+          "description": "Dart là ngôn ngữ chính để phát triển Flutter - framework phổ biến nhất cho mobile app development."
+        },
+        {
+          "title": "Cú pháp cơ bản",
+          "description": "Dart có cú pháp tương tự Java và C#, dễ học cho người mới bắt đầu."
+        }
+      ]
+    },
+    {
+      "type": "step_by_step",
+      "title": "Cài đặt Dart",
+      "steps": [
+        "Tải Dart SDK từ trang chủ dart.dev",
+        "Giải nén file và thêm vào PATH",
+        "Mở terminal và chạy lệnh 'dart --version' để kiểm tra",
+        "Tạo file mới với extension .dart để bắt đầu code"
+      ]
+    },
+    {
+      "type": "code",
+      "value": "void main() {\n  print('Hello, Dart!');\n}",
+      "language": "dart",
+      "keywords": ["void", "main", "print"]
+    },
+    {
+      "type": "analogy",
+      "concept": "Hàm main()",
+      "value": "Hàm main() giống như cửa chính của một ngôi nhà - mọi thứ đều bắt đầu từ đây. Khi bạn chạy chương trình Dart, nó sẽ tự động tìm và thực thi hàm main() đầu tiên."
+    },
+    {
+      "type": "practice",
+      "title": "Bài tập: In ra màn hình",
+      "description": "Hãy viết một chương trình Dart in ra dòng chữ 'Tôi đang học Dart!'",
+      "code_template": "void main() {\n  // TODO: Viết code in ra màn hình\n}",
+      "solution": "void main() {\n  print('Tôi đang học Dart!');\n}",
+      "hint": "Sử dụng hàm print() để in ra màn hình"
+    },
+    {
+      "type": "checkpoint",
+      "question": "Hàm main() trong Dart có vai trò gì?",
+      "options": [
+        "Là điểm bắt đầu của chương trình",
+        "Là hàm để in ra màn hình",
+        "Là hàm để khai báo biến",
+        "Là hàm để tính toán"
+      ],
+      "correct_answer": 0,
+      "explanation": "Hàm main() là điểm bắt đầu của mọi chương trình Dart. Khi chạy chương trình, Dart sẽ tự động tìm và thực thi hàm main() đầu tiên."
+    },
+    {
+      "type": "summary",
+      "value": "Trong bài học này, bạn đã học về Dart - một ngôn ngữ lập trình mạnh mẽ được sử dụng cho Flutter. Bạn cũng đã biết cách viết chương trình Dart đầu tiên với hàm main() và print().",
+      "key_points": [
+        "Dart là ngôn ngữ lập trình của Google",
+        "Hàm main() là điểm bắt đầu của chương trình",
+        "print() dùng để in ra màn hình",
+        "Dart có cú pháp dễ học cho người mới"
+      ]
+    }
+  ]
+}

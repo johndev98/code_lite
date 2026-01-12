@@ -1,0 +1,114 @@
+{
+  "dictionary_path": "content/dictionary/languages/dart",
+  "blocks": [
+    {
+      "type": "heading",
+      "value": "Vòng lặp (Loops)"
+    },
+    {
+      "type": "text",
+      "value": "Vòng lặp cho phép bạn lặp lại một đoạn code nhiều lần. Dart có 3 loại vòng lặp chính: for, while, và do-while. Mỗi loại phù hợp với tình huống khác nhau."
+    },
+    {
+      "type": "key_concepts",
+      "concepts": [
+        {
+          "title": "for loop",
+          "description": "Dùng khi biết trước số lần lặp. Cú pháp: for (initialization; condition; increment)."
+        },
+        {
+          "title": "for-in loop",
+          "description": "Dùng để lặp qua các phần tử trong collection (List, Set, Map). Cú pháp đơn giản hơn."
+        },
+        {
+          "title": "while loop",
+          "description": "Lặp khi điều kiện còn đúng. Kiểm tra điều kiện trước khi thực thi."
+        },
+        {
+          "title": "do-while loop",
+          "description": "Tương tự while nhưng thực thi ít nhất một lần, sau đó mới kiểm tra điều kiện."
+        },
+        {
+          "title": "break và continue",
+          "description": "break để thoát vòng lặp, continue để bỏ qua lần lặp hiện tại và tiếp tục lần tiếp theo."
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "value": "void main() {\n  // for loop cơ bản\n  for (int i = 0; i < 5; i++) {\n    print('Lần lặp thứ $i');\n  }\n  \n  // for-in loop\n  List<String> fruits = ['Táo', 'Chuối', 'Cam'];\n  for (String fruit in fruits) {\n    print(fruit);\n  }\n  \n  // while loop\n  int count = 0;\n  while (count < 3) {\n    print('Count: $count');\n    count++;\n  }\n  \n  // do-while\n  int x = 0;\n  do {\n    print('X = $x');\n    x++;\n  } while (x < 3);\n}",
+      "language": "dart",
+      "keywords": ["for", "while", "do", "List", "break", "continue"]
+    },
+    {
+      "type": "step_by_step",
+      "title": "Chọn loại vòng lặp phù hợp",
+      "steps": [
+        "Xác định số lần lặp: biết trước hay không?",
+        "Nếu biết trước: dùng for loop",
+        "Nếu lặp qua collection: dùng for-in",
+        "Nếu không biết trước: dùng while hoặc do-while",
+        "Nếu cần thực thi ít nhất 1 lần: dùng do-while"
+      ]
+    },
+    {
+      "type": "code",
+      "value": "void main() {\n  // break - thoát vòng lặp\n  for (int i = 0; i < 10; i++) {\n    if (i == 5) {\n      break; // Thoát khi i = 5\n    }\n    print(i);\n  }\n  \n  // continue - bỏ qua lần lặp hiện tại\n  for (int i = 0; i < 5; i++) {\n    if (i == 2) {\n      continue; // Bỏ qua khi i = 2\n    }\n    print(i);\n  }\n}",
+      "language": "dart",
+      "keywords": ["break", "continue", "if"]
+    },
+    {
+      "type": "analogy",
+      "concept": "Vòng lặp như lặp lại công việc",
+      "value": "Vòng lặp giống như bạn lặp lại một công việc: for loop giống như 'làm 10 lần', while giống như 'làm cho đến khi đạt mục tiêu', và for-in giống như 'làm với từng món trong danh sách'."
+    },
+    {
+      "type": "comparison",
+      "wrong": "for (int i = 0; i < 5; i++)\n  print(i); // Thiếu dấu ngoặc nhọn",
+      "right": "for (int i = 0; i < 5; i++) {\n  print(i);\n} // Đầy đủ dấu ngoặc nhọn",
+      "reason": "Luôn dùng dấu ngoặc nhọn {} cho vòng lặp, ngay cả khi chỉ có một dòng. Điều này giúp code rõ ràng và tránh lỗi."
+    },
+    {
+      "type": "practice",
+      "title": "Bài tập: Tính tổng từ 1 đến n",
+      "description": "Viết hàm tính tổng các số từ 1 đến n. Ví dụ: tổng từ 1 đến 5 = 1+2+3+4+5 = 15.",
+      "code_template": "void main() {\n  // TODO: Gọi hàm calculateSum với n = 10\n}\n\nint calculateSum(int n) {\n  int sum = 0;\n  // TODO: Dùng vòng lặp để tính tổng\n  return sum;\n}",
+      "solution": "void main() {\n  print(calculateSum(10));\n}\n\nint calculateSum(int n) {\n  int sum = 0;\n  for (int i = 1; i <= n; i++) {\n    sum += i;\n  }\n  return sum;\n}",
+      "hint": "Dùng for loop từ 1 đến n, cộng dồn vào biến sum. Nhớ dùng <= để bao gồm cả n."
+    },
+    {
+      "type": "list",
+      "items": [
+        "for loop: khi biết trước số lần lặp",
+        "for-in: khi lặp qua collection",
+        "while: khi không biết trước số lần",
+        "do-while: khi cần thực thi ít nhất 1 lần",
+        "break: thoát vòng lặp ngay lập tức",
+        "continue: bỏ qua lần lặp hiện tại"
+      ]
+    },
+    {
+      "type": "checkpoint",
+      "question": "Sự khác biệt giữa while và do-while là gì?",
+      "options": [
+        "do-while thực thi ít nhất 1 lần, while có thể không thực thi",
+        "while nhanh hơn do-while",
+        "do-while chỉ dùng với số",
+        "Không có sự khác biệt"
+      ],
+      "correct_answer": 0,
+      "explanation": "while kiểm tra điều kiện trước khi thực thi, nên có thể không chạy nếu điều kiện sai ngay từ đầu. do-while thực thi trước, rồi mới kiểm tra, nên luôn chạy ít nhất 1 lần."
+    },
+    {
+      "type": "summary",
+      "value": "Bạn đã học về vòng lặp trong Dart: for cho số lần biết trước, for-in cho collection, while và do-while cho điều kiện. Nhớ dùng break và continue khi cần kiểm soát vòng lặp.",
+      "key_points": [
+        "for loop: biết trước số lần lặp",
+        "for-in: lặp qua collection",
+        "while: điều kiện không xác định trước",
+        "do-while: thực thi ít nhất 1 lần",
+        "break để thoát, continue để bỏ qua"
+      ]
+    }
+  ]
+}
