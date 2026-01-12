@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/content_providers.dart';
-import '../utils/error_handler.dart';
 import '../widgets/course_card.dart';
 import 'course_detail_screen.dart';
 
@@ -13,7 +12,10 @@ class CoursesScreen extends ConsumerWidget {
     final coursesAsync = ref.watch(coursesProvider);
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(middle: Text('Courses')),
+      navigationBar: const CupertinoNavigationBar(
+        transitionBetweenRoutes: false,
+        middle: Text('Courses'),
+      ),
       child: SafeArea(
         child: coursesAsync.when(
           data: (items) {
@@ -50,8 +52,8 @@ class CoursesScreen extends ConsumerWidget {
           },
           loading: () => const Center(child: CupertinoActivityIndicator()),
           error: (error, stack) {
-            ErrorHandler.handleNetworkError(context, "Lỗi kết nối");
-            return const Center(child: Text("Lỗi tải dữ liệu"));
+            // Luôn hiển thị loading khi có lỗi, sẽ tự động retry khi có kết nối lại
+            return const Center(child: CupertinoActivityIndicator());
           },
         ),
       ),

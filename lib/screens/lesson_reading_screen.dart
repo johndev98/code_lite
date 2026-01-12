@@ -42,6 +42,7 @@ class LessonReadingScreen extends ConsumerWidget {
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        transitionBetweenRoutes: false,
         middle: Text(title),
         previousPageTitle: 'Back',
       ),
@@ -102,8 +103,10 @@ class LessonReadingScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CupertinoActivityIndicator()),
-          error: (error, stack) =>
-              const Center(child: Text("Lỗi tải nội dung")),
+          error: (error, stack) {
+            // Luôn hiển thị loading khi có lỗi, sẽ tự động retry khi có kết nối lại
+            return const Center(child: CupertinoActivityIndicator());
+          },
         ),
       ),
     );
@@ -470,7 +473,7 @@ class LessonReadingScreen extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(vertical: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border(left: BorderSide(color: color, width: 4)),
       ),

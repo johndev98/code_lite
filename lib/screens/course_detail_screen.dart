@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/content_providers.dart';
-import '../utils/error_handler.dart';
 import '../utils/dialogs.dart';
 import '../widgets/course_card.dart';
 import '../widgets/breadcrumb_title.dart';
@@ -27,6 +26,7 @@ class CourseDetailScreen extends ConsumerWidget {
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        transitionBetweenRoutes: false,
         middle: BreadcrumbTitle(breadcrumb: breadcrumb),
         previousPageTitle: 'Back',
       ),
@@ -81,8 +81,8 @@ class CourseDetailScreen extends ConsumerWidget {
           },
           loading: () => const Center(child: CupertinoActivityIndicator()),
           error: (error, stack) {
-            ErrorHandler.handleNetworkErrorWithPop(context, title);
-            return const Center(child: Text("Đang tải..."));
+            // Luôn hiển thị loading khi có lỗi, sẽ tự động retry khi có kết nối lại
+            return const Center(child: CupertinoActivityIndicator());
           },
         ),
       ),

@@ -55,7 +55,7 @@ class _BreadcrumbTitleState extends State<BreadcrumbTitle>
           isTruncated = true;
           while (parts.length > 1) {
             parts.removeAt(0);
-            display = "${parts.join(' -> ')}";
+            display = parts.join(' -> ');
             if (!_hasOverflow(display, constraints.maxWidth)) break;
           }
         }

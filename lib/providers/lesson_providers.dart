@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_config.dart';
+import 'connectivity_provider.dart';
 
 /// Provider để cache từ điển - sử dụng keepAlive để giữ cache trong suốt app lifecycle
 final dictionaryCacheProvider = StateNotifierProvider<DictionaryCacheNotifier, Map<String, Map<String, dynamic>>>(
@@ -50,6 +51,15 @@ class DictionaryCacheNotifier extends StateNotifier<Map<String, Map<String, dyna
 /// Provider để load lesson data - auto dispose khi không dùng
 final lessonDataProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, LessonParams>(
   (ref, params) async {
+    // Lắng nghe thay đổi connectivity và tự động refresh khi có kết nối lại
+    ref.listen(connectivityProvider, (_, next) {
+      next.whenData((isConnected) {
+        if (isConnected) {
+          ref.invalidateSelf();
+        }
+      });
+    });
+
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final lessonUrl = '${AppConfig.baseUrl}/${params.path}?t=$timestamp';
 
