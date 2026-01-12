@@ -62,6 +62,7 @@ final lessonDataProvider = FutureProvider.autoDispose.family<Map<String, dynamic
     }
 
     final lessonData = jsonDecode(lessonResponse.body) as Map<String, dynamic>;
+    Map<String, dynamic>? courseIndex;
 
     // Xác định từ điển
     String? customPath = lessonData['dictionary_path'] as String?;
@@ -75,12 +76,30 @@ final lessonDataProvider = FutureProvider.autoDispose.family<Map<String, dynamic
     final cacheNotifier = ref.read(dictionaryCacheProvider.notifier);
     await cacheNotifier.loadDictionary(dictKey, params.languageId, customPath: customPath);
 
+    // Thử load course index (ví dụ cho dart_basic dựa trên path)
+    try {
+      final String? courseIndexPath = _resolveCourseIndexPath(params.path);
+      if (courseIndexPath != null) {
+        final indexUrl = '${AppConfig.baseUrl}/$courseIndexPath?t=$timestamp';
+        final indexResponse = await http
+            .get(Uri.parse(indexUrl))
+            .timeout(AppConfig.networkTimeout);
+        if (indexResponse.statusCode == 200) {
+          courseIndex =
+              jsonDecode(indexResponse.body) as Map<String, dynamic>;
+        }
+      }
+    } catch (_) {
+      // Bỏ qua lỗi course index, không chặn lesson
+    }
+
     // Giữ provider alive trong khi đang hiển thị lesson
     ref.keepAlive();
 
     return {
       'lesson': lessonData,
       'active_dict_path': dictKey,
+      if (courseIndex != null) 'course_index': courseIndex,
     };
   },
 );
@@ -105,4 +124,15 @@ class LessonParams {
 
   @override
   int get hashCode => path.hashCode ^ languageId.hashCode;
+}
+
+/// Xác định đường dẫn course index từ lesson path.
+/// Ví dụ: content/courses/.../dart_basic/intro_dart.json
+///  => content/courses/.../dart_basic/index.json
+String? _resolveCourseIndexPath(String lessonPath) {
+  const marker = '/dart_basic/';
+  final idx = lessonPath.indexOf(marker);
+  if (idx == -1) return null;
+  final prefix = lessonPath.substring(0, idx + marker.length);
+  return '${prefix}index.json';
 }

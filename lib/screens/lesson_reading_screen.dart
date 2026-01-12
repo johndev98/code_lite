@@ -50,6 +50,27 @@ class LessonReadingScreen extends ConsumerWidget {
           data: (data) {
             final lesson = data['lesson'] as Map<String, dynamic>;
             final List blocks = lesson['blocks'] ?? [];
+            final Map<String, dynamic>? courseIndex =
+                data['course_index'] as Map<String, dynamic>?;
+            String? nextPath;
+            String? nextTitle;
+            bool isLastLesson = false;
+
+            if (courseIndex != null) {
+              final List items = courseIndex['items'] as List? ?? [];
+              final String currentPath = path;
+              int currentIndex = items.indexWhere((item) {
+                final map = item as Map<String, dynamic>;
+                return map['path'] == currentPath;
+              });
+              if (currentIndex != -1 && currentIndex + 1 < items.length) {
+                final next = items[currentIndex + 1] as Map<String, dynamic>;
+                nextPath = next['path'] as String?;
+                nextTitle = next['title']?.toString();
+              } else {
+                isLastLesson = true;
+              }
+            }
 
             if (blocks.isEmpty) {
               return const Center(child: Text("Không có nội dung"));
@@ -57,18 +78,107 @@ class LessonReadingScreen extends ConsumerWidget {
 
             return ListView.builder(
               padding: const EdgeInsets.all(20),
-              itemCount: blocks.length,
-              itemBuilder: (context, index) => _buildBlock(
-                context,
-                blocks[index] as Map<String, dynamic>,
-                dict,
-              ),
+              itemCount: blocks.length + 1, // +1 cho button tiếp tục
+              itemBuilder: (context, index) {
+                // Nếu là item cuối cùng, render button tiếp tục
+                if (index == blocks.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 24, bottom: 12),
+                    child: _buildNextLessonButton(
+                      context,
+                      nextPath: nextPath,
+                      nextTitle: nextTitle,
+                      isLastLesson: isLastLesson,
+                    ),
+                  );
+                }
+                // Render block bình thường
+                return _buildBlock(
+                  context,
+                  blocks[index] as Map<String, dynamic>,
+                  dict,
+                );
+              },
             );
           },
           loading: () => const Center(child: CupertinoActivityIndicator()),
           error: (error, stack) =>
               const Center(child: Text("Lỗi tải nội dung")),
         ),
+      ),
+    );
+  }
+
+  Widget _buildNextLessonButton(
+    BuildContext context, {
+    required String? nextPath,
+    required String? nextTitle,
+    required bool isLastLesson,
+  }) {
+    final bool hasNext = nextPath != null && nextPath.isNotEmpty;
+    final String buttonText = hasNext && !isLastLesson
+        ? "Tiếp tục: ${nextTitle ?? 'Bài tiếp theo'}"
+        : "Hoàn thành khoá học";
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      child: SizedBox(
+        width: double.infinity,
+        child: CupertinoButton.filled(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          borderRadius: BorderRadius.circular(12),
+          onPressed: () {
+            if (!hasNext || isLastLesson) {
+              _showCourseCompletedDialog(context);
+            } else {
+              Navigator.of(context).pushReplacement(
+                CupertinoPageRoute(
+                  builder: (_) => LessonReadingScreen(
+                    title: nextTitle ?? "Bài tiếp theo",
+                    path: nextPath,
+                    languageId: languageId,
+                  ),
+                ),
+              );
+            }
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                buttonText,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (hasNext && !isLastLesson) ...[
+                const SizedBox(width: 8),
+                const Icon(CupertinoIcons.arrow_right, size: 18),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCourseCompletedDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (_) => CupertinoAlertDialog(
+        title: const Text("Chúc mừng!"),
+        content: const Text("Bạn đã hoàn thành khoá học này 🎉"),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text("Đóng"),
+            onPressed: () {
+              Navigator.of(context).pop(); // đóng dialog
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        ],
       ),
     );
   }
